@@ -39,17 +39,19 @@ resource "aws_instance" "blog" {
   ami           = data.aws_ami.app_ami.id
   instance_type = "t3.nano"
 
-  subnet_id = modules.blog_vpc.public_subnets[0]
+  subnet_id = module.blog_vpc.public_subnets[0]
 
   tags = {
     Name = "HelloWorld"
   }
   
-  vpc_groups_ids = [aws_security_group.blog.id]
+  vpc_security_group_ids = [aws_security_group.blog.id]
 
-resource aws_security_group "TerraformSecurityGroup" {
+}
+
+resource "aws_security_group" "blog" {
   name = "TerraformSecurityGroup"
-  vpc.id = modules.blog_vpc.public_subnets[0]
+  vpc_id = module.blog_vpc.vpc_id
 }
 
 
@@ -57,9 +59,9 @@ module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
   name    = "blog-alb"
-  vpc_id  = "module.blog_vpc.vpc_id"
-  subnets = [module.blog_vpc.public_subnets]
-  security_groups = [module.blog_sg.security_group.id]
+  vpc_id  = module.blog_vpc.vpc_id
+  subnets = module.blog_vpc.public_subnets
+  security_groups = [aws_security_group.blog.id]
 
   # Security Group
   security_group_ingress_rules = {
@@ -116,7 +118,7 @@ module "alb" {
       protocol         = "HTTP"
       port             = 80
       target_type      = "instance"
-      target_id        = "aws_instance.blog.id"
+      target_id        = aws_instance.blog.id
     }
   }
 
@@ -127,24 +129,24 @@ module "alb" {
 }
 
 
-resource "aws_security_group_rule" "blog.https.out"{
+resource "aws_security_group_rule" "blog_https_out"{
   type = "egress"
   from_port = 0
   to_port = 0
   protocol = -1
   cidr_blocks = ["0.0.0.0/0"]
-  aws_security_group.ids = aws_security_group.blog.id
+  security_group_id = aws_security_group.blog.id
 
 
 }
 
-resource "aws_security_group_rule" "blog.https.in"{
+resource "aws_security_group_rule" "blog_https_in"{
   type = "ingress"
   from_port = 443
   to_port = 443
-  protocol = tcp
+  protocol = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
-  aws_security_group.ids = aws_security_group.blog.id
+  security_group_id = aws_security_group.blog.id
 
 
 }
