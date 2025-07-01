@@ -35,7 +35,7 @@ module  "blog_vpc" {
 }
 
 
-resource "aws_instance" "web" {
+resource "aws_instance" "blog" {
   ami           = data.aws_ami.app_ami.id
   instance_type = "t3.nano"
 
@@ -116,7 +116,7 @@ module "alb" {
       protocol         = "HTTP"
       port             = 80
       target_type      = "instance"
-      target_id        = "aws_instance.id"
+      target_id        = "aws_instance.blog.id"
     }
   }
 
