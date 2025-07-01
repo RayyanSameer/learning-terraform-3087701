@@ -21,7 +21,7 @@ data "aws_vpc" "default"{
 module  "blog_vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
-  name = "my-vpc"
+  name = "blog-vpc"
   cidr = "10.0.0.0/16"
 
   azs             = ["us-west-2a", "us-west-2b", "us-west-2c"]
@@ -49,7 +49,7 @@ resource "aws_instance" "blog" {
 
 resource aws_security_group "TerraformSecurityGroup" {
   name = "TerraformSecurityGroup"
-  vpc.id = modules.blog_vpc.public_subnets
+  vpc.id = modules.blog_vpc.public_subnets[0]
 }
 
 
@@ -133,7 +133,7 @@ resource "aws_security_group_rule" "blog.https.out"{
   to_port = 0
   protocol = -1
   cidr_blocks = ["0.0.0.0/0"]
-  aws_security_group.id = aws_security_group.blog.id
+  aws_security_group.ids = aws_security_group.blog.id
 
 
 }
@@ -144,7 +144,7 @@ resource "aws_security_group_rule" "blog.https.in"{
   to_port = 443
   protocol = tcp
   cidr_blocks = ["0.0.0.0/0"]
-  aws_security_group.id = aws_security_group.blog.id
+  aws_security_group.ids = aws_security_group.blog.id
 
 
 }
